@@ -1,6 +1,10 @@
 package wrapper
 
 import (
+	"errors"
+	"fmt"
+
+	"chainmaker.org/chainmaker/pb-go/v2/common"
 	sdk "chainmaker.org/chainmaker/sdk-go/v2"
 )
 
@@ -23,4 +27,23 @@ func CreateCMClientWithConfig(configPath string) (*sdk.ChainClient, error) {
 	// }
 
 	return client, nil
+}
+
+func CheckProposalRequestResp(resp *common.TxResponse, needContractResult bool) error {
+	if resp.Code != common.TxStatusCode_SUCCESS {
+		if resp.Message == "" {
+			resp.Message = resp.Code.String()
+		}
+		return errors.New(resp.Message)
+	}
+
+	if needContractResult && resp.ContractResult == nil {
+		return fmt.Errorf("contract result is nil")
+	}
+
+	if resp.ContractResult != nil && resp.ContractResult.Code != 0 {
+		return errors.New(resp.ContractResult.Message)
+	}
+
+	return nil
 }

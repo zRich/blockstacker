@@ -1,6 +1,6 @@
 chain_client:
   # 链ID
-  chain_id: "cmlabgo"
+  chain_id: "stacker"
   # 组织ID
   org_id: "TestCMorg1"
   # 客户端用户私钥路径
