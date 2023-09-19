@@ -1,15 +1,16 @@
-module github.com/zRich/blockstacker
+module github.com/zRich/cm-api-server
 
-go 1.20
+go 1.18
 
 require (
+	chainmaker.org/chainmaker/common/v2 v2.3.1
+	chainmaker.org/chainmaker/pb-go/v2 v2.3.2
 	chainmaker.org/chainmaker/sdk-go/v2 v2.3.2
 	github.com/gin-gonic/gin v1.9.0
 )
 
 require (
-	chainmaker.org/chainmaker/common/v2 v2.3.1 // indirect
-	chainmaker.org/chainmaker/pb-go/v2 v2.3.2 // indirect
+	chainmaker.org/chainmaker/common v0.0.0-20210827070154-2db71d789138
 	chainmaker.org/chainmaker/protocol/v2 v2.3.2 // indirect
 	chainmaker.org/chainmaker/utils/v2 v2.3.2 // indirect
 	github.com/Rican7/retry v0.1.0 // indirect
@@ -73,7 +74,7 @@ require (
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.17.0 // indirect
+	go.uber.org/zap v1.17.0
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect

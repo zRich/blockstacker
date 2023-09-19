@@ -1,107 +1,48 @@
 package main
 
 import (
-	"log"
 	"net/http"
-	"strconv"
-	"time"
 
-	"chainmaker.org/chainmaker/common/v2/random/uuid"
-	"chainmaker.org/chainmaker/pb-go/v2/common"
 	"github.com/gin-gonic/gin"
-	"github.com/zRich/blockstacker/wrapper"
+	"github.com/zRich/cm-api-server/src/client"
+	"github.com/zRich/cm-api-server/src/common"
 )
 
 const (
-	// ConfigFile = "./conf/client/sdk_config_org1_client1.yml"
-	// ConfigFile = "./conf/client/sdk_config.yml"
-	ConfigFile = "./conf/client/sdk_config_user1.yml"
+	ConfigFile = "./config/sdk_config.yaml"
 )
 
 func main() {
 
+	// logger.SetLogConfig(logger.DefaultLogConfig())
+
+	client, err := client.CreateCMClientWithConfig(ConfigFile)
+	if err != nil {
+		common.Log.Error(err.Error())
+	}
 	r := gin.New()
 
 	// enable cors
 
 	r.Use(Cors())
 
-	r.GET("/ping", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-
-	r.GET("/getBlockHeight", func(ctx *gin.Context) {
-		cmClient, err := wrapper.CreateCMClientWithConfig(ConfigFile)
+	r.POST("/invoke", func(ctx *gin.Context) {
+		// 从请求中获取参数 body 为json格式, 类型为 InvokeContractListParams
+		var body common.InvokeContractListParams
+		err := ctx.ShouldBindJSON(&body)
 		if err != nil {
-			log.Fatalln(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
 		}
-		height, err := cmClient.GetCurrentBlockHeight()
+
+		txRes, err := client.InvokeContract(body.ContractName, body.MethodName, "", common.ConvertToPbKeyValues(body.Parameters), -1, true)
 		if err != nil {
-			log.Fatalln(err)
-		}
-		ctx.JSON(200, gin.H{
-			"height": height,
-		})
-	})
-
-	r.GET("/version", func(ctx *gin.Context) {
-		cmClient, err := wrapper.CreateCMClientWithConfig(ConfigFile)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		version, err := cmClient.GetChainMakerServerVersion()
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ctx.JSON(200, gin.H{
-			"version": version,
-		})
-	})
-
-	r.POST("/save", func(ctx *gin.Context) {
-		cmClient, err := wrapper.CreateCMClientWithConfig(ConfigFile)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		type SaveReq struct {
-			FileName string `json:"file_name"`
-		}
-
-		var req SaveReq
-		err = ctx.BindJSON(&req)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		fileName := req.FileName
-
-		params := []*common.KeyValuePair{
-			{
-				Key:   "time",
-				Value: []byte(strconv.FormatInt(time.Now().Unix(), 10)),
-			},
-			{
-				Key:   "file_name",
-				Value: []byte(fileName),
-			},
-			{
-				Key:   "file_hash",
-				Value: []byte(uuid.GetUUID()),
-			},
-		}
-
-		txRes, err := cmClient.InvokeContract("GoFactv520", "save", "", params, -1, true)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		err = wrapper.CheckProposalRequestResp(txRes, true)
-
-		if err != nil {
-			log.Fatalln(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
 		}
 
 		ctx.JSON(200, gin.H{
@@ -111,43 +52,25 @@ func main() {
 			"extra_data":  txRes.ContractResult.GetContractEvent(),
 			"raw":         txRes,
 		})
-
 	})
 
 	r.GET("/query", func(ctx *gin.Context) {
-		cmClient, err := wrapper.CreateCMClientWithConfig(ConfigFile)
+		// 从请求中获取参数 body 为json格式, 类型为 InvokeContractListParams
+		var body common.InvokeContractListParams
+		err := ctx.ShouldBindJSON(&body)
 		if err != nil {
-			log.Fatalln(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
 		}
 
-		type QueryReq struct {
-			FileHash string `json:"file_hash"`
-		}
-
-		var req QueryReq
-		err = ctx.BindJSON(&req)
+		txRes, err := client.QueryContract(body.ContractName, body.MethodName, common.ConvertToPbKeyValues(body.Parameters), -1)
 		if err != nil {
-			log.Fatalln(err)
-		}
-
-		fileHash := req.FileHash
-
-		params := []*common.KeyValuePair{
-			{
-				Key:   "file_hash",
-				Value: []byte(fileHash),
-			},
-		}
-
-		txRes, err := cmClient.QueryContract("GoFactv520", "findByFileHash", params, -1)
-		if err != nil {
-			log.Fatalln(err)
-		}
-
-		err = wrapper.CheckProposalRequestResp(txRes, true)
-
-		if err != nil {
-			log.Fatalln(err)
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": err.Error(),
+			})
+			return
 		}
 
 		ctx.JSON(200, gin.H{
@@ -160,7 +83,8 @@ func main() {
 		})
 	})
 
-	r.Run()
+	// license address 0.0.0.0, port 8080
+	r.Run("0.0.0.0:8080")
 }
 
 // 处理跨域请求,支持options访问
