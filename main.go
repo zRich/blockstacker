@@ -1,35 +1,63 @@
 package main
 
 import (
+	"flag"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/zRich/cm-api-server/src/client"
 	"github.com/zRich/cm-api-server/src/common"
+	"github.com/zRich/cm-api-server/src/logger"
 )
 
 const (
-	ConfigFile = "./config/sdk_config.yaml"
+	DEFAULT_CONFIG = "/cm-api-server/config/sdk_config.yaml"
 )
 
 func main() {
 
-	// logger.SetLogConfig(logger.DefaultLogConfig())
+	logger.SetLogConfig(logger.DefaultLogConfig())
 
-	client, err := client.CreateCMClientWithConfig(ConfigFile)
-	if err != nil {
-		common.Log.Error(err.Error())
+	var configFile string
+
+	// parentDir := path.Join("..")
+
+	// // 拼接config子目录路径
+	// configDir := path.Join(parentDir, "config")
+
+	// // 读取config.yaml文件
+	// configFile := path.Join(configDir, "config.yaml")
+
+	configFile = configYml()
+	// common.Log.Info("configFile: ", configFile)
+	if configFile == "" {
+		common.Log.Info("can not find param [--config], will use default")
+		configFile = DEFAULT_CONFIG
 	}
+
+	client, err := client.CreateCMClientWithConfig(configFile)
+	if err != nil {
+		common.Log.Infof("creating client failed. err : %s", err.Error())
+		common.Log.Infof("config : %s", err.Error())
+		common.Log.Error(err.Error())
+		return
+	}
+
 	r := gin.New()
 
 	// enable cors
 
 	r.Use(Cors())
 
+	gin.SetMode(gin.ReleaseMode)
+
 	r.POST("/invoke", func(ctx *gin.Context) {
 		// 从请求中获取参数 body 为json格式, 类型为 InvokeContractListParams
 		var body common.InvokeContractListParams
+
 		err := ctx.ShouldBindJSON(&body)
+		common.Log.Infof("Invoke request received. params : %v", body)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"message": err.Error(),
@@ -56,8 +84,11 @@ func main() {
 
 	r.GET("/query", func(ctx *gin.Context) {
 		// 从请求中获取参数 body 为json格式, 类型为 InvokeContractListParams
+
 		var body common.InvokeContractListParams
+
 		err := ctx.ShouldBindJSON(&body)
+		common.Log.Infof("Query request received. params : %v", body)
 		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"message": err.Error(),
@@ -105,4 +136,21 @@ func Cors() gin.HandlerFunc {
 		// 处理请求
 		c.Next()
 	}
+}
+
+func configYml() string {
+	configPath := flag.String("config", "", "sdk_config.yaml's path")
+	flag.Parse()
+	return *configPath
+}
+
+func PathExists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }

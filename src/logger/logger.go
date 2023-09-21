@@ -17,6 +17,7 @@ const (
 	ModuleDb      = "[DB]"
 	ModuleSession = "[SESSION]"
 	K8s           = "[KUBERNETES]"
+	ModuleAPI     = "[API]"
 )
 
 // LogConf 日志配置
@@ -154,7 +155,7 @@ func DefaultLogConfig() *LogConf {
 func GetDefaultLogNodeConfig() LogConf {
 	return LogConf{
 		LogLevelDefault: log.DEBUG,
-		FilePath:        "../log/web.log",
+		FilePath:        "../log/api.log",
 		MaxAge:          log.DEFAULT_MAX_AGE,
 		RotationTime:    log.DEFAULT_ROTATION_TIME,
 		LogInConsole:    true,

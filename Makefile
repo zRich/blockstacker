@@ -1,4 +1,4 @@
-VERSION=v2.3.2
+VERSION=v2.3.1
 DATETIME=$(shell date "+%Y%m%d%H%M%S")
 
 compile:

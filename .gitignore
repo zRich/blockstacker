@@ -22,3 +22,6 @@ go.work
 
 # chainmake sdk log
 sdk.log*
+
+config
+log

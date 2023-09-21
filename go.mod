@@ -3,11 +3,12 @@ module github.com/zRich/cm-api-server
 go 1.18
 
 require (
-	chainmaker.org/chainmaker/common/v2 v2.3.1
 	chainmaker.org/chainmaker/pb-go/v2 v2.3.2
 	chainmaker.org/chainmaker/sdk-go/v2 v2.3.2
 	github.com/gin-gonic/gin v1.9.0
 )
+
+require chainmaker.org/chainmaker/common/v2 v2.3.1 // indirect
 
 require (
 	chainmaker.org/chainmaker/common v0.0.0-20210827070154-2db71d789138
