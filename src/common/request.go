@@ -43,10 +43,10 @@ type ParameterParams struct {
 
 type InvokeContractListParams struct {
 	ContractName string
-	ContractAddr string
-	MethodName   string
-	MethodFunc   string
-	Parameters   []*ParameterParams
+	// ContractAddr string
+	MethodName string
+	// MethodFunc   string
+	Parameters []*ParameterParams
 }
 
 func ConvertToPbKeyValues(keyValues []*ParameterParams) []*pbcommon.KeyValuePair {
